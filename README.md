@@ -1,0 +1,3 @@
+# SARS-CoV-2 Coefficient of Exponential Growth Alteration (CEGA)
+
+Submitted work, currently prettyfying the code before uploading here ...
