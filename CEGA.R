@@ -113,49 +113,12 @@ parApply_result <-  t(parApply(cl, nodes_to_keep,1, function(x){
   loop3(x,input) }))
 stopCluster(cl)
 
-# brouillon ON
-
-# the goal now is to apply a 90% threshold on the pureness of each clade
-df_90 <- df[((df$lin_1_all_0 > 0.9 * (df$lin_1_all_0 + df$lin_1_all_1)) | (df$lin_1_all_1 > 0.9 * (df$lin_1_all_0 + df$lin_1_all_1)) ) &  ((df$lin_2_all_0 > 0.9 * (df$lin_2_all_0 + df$lin_2_all_1)) | (df$lin_2_all_1 > 0.9 * (df$lin_2_all_0 + df$lin_2_all_1)) ),]
-
-df_90$homoplasy <- as.factor(df_90$homoplasy)
-df_90 <- df_90[df_90[,15]=="5_10",]
-df_90 <- df_90[is.finite(df_90$CEGA2),]
-
-df_tot <- raw_out_table2_complete_filtered
-df_tot$homoplasy <- as.factor(df_tot$homoplasy)
-df_tot <- df_tot[df_tot[,15]=="5_10",]
-df_tot <- df_tot[is.finite(df_tot$CEGA2),]
-# brouillon OFF
-
 new_table <- cbind(nodes_to_keep,parApply_result)
 new_table <- new_table[new_table[,4] >= tips_rule & new_table[,3] >= tips_rule,]
 colnames(new_table) <- c("homoplasy","node","NOT_homoplasy_count","homoplasy_count","perfect","lin_1_all_0","lin_1_all_1","lin_2_all_0","lin_2_all_1")
 # keep only 90% perfect nodes in new_table :
-nrow(new_table)
 new_table <- new_table[((new_table$lin_1_all_0 > 0.9 * (new_table$lin_1_all_0 + new_table$lin_1_all_1)) | (new_table$lin_1_all_1 > 0.9 * (new_table$lin_1_all_0 + new_table$lin_1_all_1)) ) &  ((new_table$lin_2_all_0 > 0.9 * (new_table$lin_2_all_0 + new_table$lin_2_all_1)) | (new_table$lin_2_all_1 > 0.9 * (new_table$lin_2_all_0 + new_table$lin_2_all_1)) ),]
-nrow(new_table)
 
-# for non-paralelized version, create object that will receive result
-# i <- 0 ; raw_out_table <- matrix( nrow = 10000000, ncol = 4)
-# debug_raw_out_table <- matrix( nrow = 10000000, ncol = 5)
-# 
-# debug_raw_out_table <- t(as.matrix(apply(new_table,1,function(line){
-#    homoplasy <- line[1]
-#    node <- line[2]
-#    child_nodes <- architecture_arbre[[node]][architecture_arbre[[node]]>(length(arbre_filtered$tip.label))]
-#    # si ya des child node presents dans new_table POUR LA MEME homoplasie on drop
-#    count_children_node_with_homoplasy_with_rule <- sum(new_table[new_table[,2]%in%child_nodes,1]==homoplasy) 
-# 
-#    tip_rule_granted <- line[5] >= 10 & line[4] >= 10
-#    
-#    NOT_homoplasy_count <- line[5]
-#    homoplasy_count <- line[4]
-#    
-#    return(c(homoplasy,homoplasy_count,NOT_homoplasy_count,node,count_children_node_with_homoplasy_with_rule,tip_rule_granted))
-#    
-#  })))
-#  
  raw_out_table <- t(as.matrix(apply(new_table,1,function(line){
   homoplasy <- line[1]
   node <- line[2]
