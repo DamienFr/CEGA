@@ -18,6 +18,7 @@ library(ggplot2)
 library(ggExtra)
 library(bigmemory)
 library(parallel)
+library(phytools)
 
 thread_number <- 4 # thread_number <- "auto" # set it to auto or to a number
 deduplicated_dataset <- 0 # bolean, set to 1 (true) if dataset contains deduplicated sequences and if you have a table of re-duplication table
@@ -27,42 +28,11 @@ min_offspring <- 20 # node annotated as carying an homoplasy and having less tip
 # they will not have their roho score computed and they will not count as embedded homoplasies neither.
 tips_rule  <- 10
 
-# min_offspring <- 10
-# tips_rule  <- 5
-
 arbre_filtered_file <- list.files(path = ".", pattern = "^annotatedNewickTree_.*.tree")
-
-library(phytools)
 arbre_filtered <- read.newick(arbre_filtered_file)
-
-# arbre_filtered <- read.tree(arbre_filtered_file)
-is.binary.tree(arbre_filtered)
-arbre_filtered <- multi2di(arbre_filtered)
-
-# INDEPENDENT production of table of studied accessions
-table_s_metadata_file <- read.csv("../00.inputs/metadata_complete.tsv", row.names=NULL,sep="\t",dec=",", header=T, stringsAsFactors=F,check.names=FALSE)
-colnames(table_s_metadata_file)
-# table_s_metadata_file <- table_s_metadata_file[,-4]
-subset_table_s_metadata_file <- table_s_metadata_file[table_s_metadata_file[,3]%in%arbre_filtered$t,]
-nrow(subset_table_s_metadata_file)
-
-subset_table_s_metadata_file_print <- subset_table_s_metadata_file[,c(3,5,6,7,8,9,18,19,20,21,22)]
-write.table(subset_table_s_metadata_file_print, file = paste("Table_S5_samples.incomplete",".tsv",sep=""), append = FALSE, quote = F, sep = "\t",eol = "\n", na = "NA", dec = ".", row.names = F,col.names = T, qmethod = c("escape", "double"), fileEncoding = "")
-rm(subset_table_s_metadata_file_print)
-rm(table_s_metadata_file)
-# end of  INDEPENDENT production of table of studied accessions
 
 input <- bigmemory::read.big.matrix("input_matrix_numeric", has.row.names=T,header=T,sep="\t")
 
-# OPTIONAL tip labels renaming because in the input matrix they have short names EPI_ISL code names only
-# arbre_filtered$tip.label <- sapply(strsplit(arbre_filtered$t,"\\|"), `[`, 2)
-
-orphan_tips <- arbre_filtered$t[! arbre_filtered$t%in%colnames(input)]
-# these objects SHOULD be empty :
-orphan_tips
-colnames(input)[! colnames(input)%in%arbre_filtered$t]
-
-#########################################################################
 # read the node labels and melt them to have a usefull format
 annotation_nodes_useful_format <- melt(strsplit(arbre_filtered$node.label,"-"))
 annotation_nodes_useful_format[,1] <- as.numeric(as.character(annotation_nodes_useful_format[,1])) # added 12 may
@@ -95,76 +65,23 @@ homoplasies <-  homoplasies[!homoplasies==coordinates[coordinates[,1]==11083,3]]
 if(! is.na(coordinates[coordinates[,1]==21575,3])){
 homoplasies <-  homoplasies[!homoplasies==coordinates[coordinates[,1]==21575,3]]
 }
-# this should be empty because retained homoplasies HAVE to be in the input matrix
-homoplasies[!homoplasies%in%rownames(input)]
-# this will contain as many positions as removed positions in the above lines of code
-rownames(input)[!rownames(input)%in%homoplasies]
+if(! is.na(coordinates[coordinates[,1]==21987,3])){
+  homoplasies <-  homoplasies[!homoplasies==coordinates[coordinates[,1]==21987,3]]
+}
 
-save.image(file = paste("Workspace_01_before_parallel_MinOffspring_",min_offspring,"_embedded_",children_node_rule,"_MinTipsOfEachAllele_",tips_rule,".RData",sep=""))
-# load(paste("Workspace_01_before_parallel_MinOffspring_",min_offspring,"_embedded_",children_node_rule,"_MinTipsOfEachAllele_",tips_rule,".RData",sep=""))
-
-# all nodes that will be used in the entire script are
-# nrow(annotation_nodes_useful_format)
 nodes_to_keep <- annotation_nodes_useful_format[annotation_nodes_useful_format[,1]%in%homoplasies,]
-#nodes_to_keep[nodes_to_keep[,1]==1574,] # delme 11.04.2021
-annotation_nodes_useful_format[!annotation_nodes_useful_format[,1]%in%homoplasies,]
-# nrow(nodes_to_keep)
 nb_tips <- length(arbre_filtered$tip.label)
 nodes_to_keep[,2] <- nodes_to_keep[,2] + nb_tips
 
-manual_first_loop <- 0
-if(manual_first_loop == 1){
-  parApply_result <- matrix(nrow=nrow(nodes_to_keep),ncol=7)
-  for(i in c(1:nrow(nodes_to_keep))){
-  #for(i in c(1:10)){
-   # i <- 43
-    x <- as.vector(nodes_to_keep[i,])
-    tips <- architecture_arbre[[unlist(x[2])]][architecture_arbre[[unlist(x[2])]]<=(nb_tips)]
-    alleles <- as.character(unname(input[as.character(unlist(x[1])),arbre_filtered_tips[tips]]))
-    # bug identifie ya pas de noeud 1761 dans la matrice d'input
-    length(rownames(input))
-    max(unique(nodes_to_keep[,1]))
-    # matrice a 1499 lignes alors que unique des nodes to pouet est 1761
-
-    as.character(unname(input[as.character(unlist(x[1])),]))
-    as.character(unname(input[,arbre_filtered_tips[tips]]))
-    
-    names(alleles) <- arbre_filtered_tips[tips]
-    NOT_homoplasy_count <- sum(alleles=="0")
-    homoplasy_count <- sum(alleles=="1")
-    
-    two_lineages <- Children(arbre_filtered,unlist(x[2]))
-    tips_lineage_1 <- arbre_filtered_tips[architecture_arbre[[two_lineages[1]]][architecture_arbre[[two_lineages[1]]]<=(nb_tips)]]
-    
-    tips_lineage_1_alleles <- alleles[tips_lineage_1]
-    lin_1_all_0 <- sum(tips_lineage_1_alleles==0)
-    lin_1_all_1 <- sum(tips_lineage_1_alleles==1)
-    
-    tips_lineage_2_alleles <- alleles[!names(alleles)%in%tips_lineage_1]
-    lin_2_all_0 <- sum(tips_lineage_2_alleles==0)
-    lin_2_all_1 <- sum(tips_lineage_2_alleles==1)
-    
-    perfect <- length(unique(tips_lineage_1_alleles)) == 1 & length(unique(tips_lineage_2_alleles)) == 1
-    
-    NOT_homoplasy_count <- sum(alleles=="0")
-    homoplasy_count <- sum(alleles=="1")
-    parApply_result[i,] <- c(NOT_homoplasy_count,homoplasy_count,perfect,lin_1_all_0,lin_1_all_1,lin_2_all_0,lin_2_all_1)
-  }
-}
-
-# working parallel solution
+# parallel solution
 arbre_filtered_tips <- arbre_filtered$t # do not delete that i need it for distance timespan calculation later
 loop3 <- function(x,input){
-  # x <- as.vector(nodes_to_keep[1,])
- # tips <- architecture_arbre[[unlist(x[2])]][architecture_arbre[[unlist(x[2])]]<=(nb_tips)]
-#  alleles <- as.character(unname(input[as.character(unlist(x[1])),arbre_filtered_tips[tips]]))
   tips <- architecture_arbre[[x[2]]][architecture_arbre[[x[2]]]<=(nb_tips)]
   alleles <- as.character(unname(input[as.character(x[1]),arbre_filtered_tips[tips]]))
   names(alleles) <- arbre_filtered_tips[tips]
   NOT_homoplasy_count <- sum(alleles=="0")
   homoplasy_count <- sum(alleles=="1")
   
-  # two_lineages <- Children(arbre_filtered,unlist(x[2]))
   two_lineages <- Children(arbre_filtered,x[2])
   tips_lineage_1 <- arbre_filtered_tips[architecture_arbre[[two_lineages[1]]][architecture_arbre[[two_lineages[1]]]<=(nb_tips)]]
 
@@ -181,34 +98,20 @@ loop3 <- function(x,input){
   NOT_homoplasy_count <- sum(alleles=="0")
   homoplasy_count <- sum(alleles=="1")
   return(c(NOT_homoplasy_count,homoplasy_count,perfect,lin_1_all_0,lin_1_all_1,lin_2_all_0,lin_2_all_1))
-  
-  # old version begin :
-  # tips <- architecture_arbre[[x[2]]][architecture_arbre[[x[2]]]<=(nb_tips)]
-  # alleles <- as.character(unname(input[as.character(x[1]),arbre_filtered_tips[tips]]))
-  # NOT_homoplasy_count <- sum(alleles=="0")
-  # homoplasy_count <- sum(alleles=="1")
-  # return(c(NOT_homoplasy_count,homoplasy_count))
-  # 
-  # old version end
 }
 
 cl <- makeCluster(4)
 datadesc <- describe(input)
 clusterExport(cl, c("architecture_arbre","arbre_filtered_tips","nb_tips","loop3","datadesc","arbre_filtered"))
 clusterEvalQ(cl, {
- # library(parallel)  # can be removed, but to test still
   library(bigmemory)
   library(phangorn)
 })
 
 parApply_result <-  t(parApply(cl, nodes_to_keep,1, function(x){
-  # require(bigmemory) # can be removed, but to test still
   input <- attach.big.matrix(datadesc)
   loop3(x,input) }))
 stopCluster(cl)
-
-save.image(file = paste("Workspace_01.2_before_parallel_MinOffspring_",min_offspring,"_embedded_",children_node_rule,"_MinTipsOfEachAllele_",tips_rule,".RData",sep=""))
-# load(paste("Workspace_01.2_before_parallel_MinOffspring_",min_offspring,"_embedded_",children_node_rule,"_MinTipsOfEachAllele_",tips_rule,".RData",sep=""))
 
 # brouillon ON
 
