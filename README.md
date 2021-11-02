@@ -19,6 +19,7 @@ The CEGA index is based on the ratio of the number of descendents of sister clad
 - Homoplasyfinder Consistency Index Report (provided, output file of Homoplasyfinder)
 - Annotated tree file (not provided due to copyright issues, output file of Homoplasyfinder)
 - A matrix of alleles for each isolates at homoplastic positions
+
 The matrix has the following form :
 
 
