@@ -21,15 +21,6 @@ The CEGA index is based on the ratio of the number of descendents of sister clad
 - A matrix of alleles for each isolates at homoplastic positions
 The matrix has the following form :
 
-
-		Isolate_1	Isolate_2	Isolate_3	Isolate_4
-	1912	"ref"	"ref"	"not_ref"	"ref"
-	11083	"ref"	"not_ref"	"ref"	"undef"
-	23043	"ref"	"ref"	"not_ref"	"ref"
-
-
-The matrix has the following form :
-
 		Isolate_1	Isolate_2	Isolate_3	Isolate_4
 	1912	"ref"	"ref"	"not_ref"	"ref"
 	11083	"ref"	"not_ref"	"ref"	"undef"
@@ -37,7 +28,6 @@ The matrix has the following form :
 
 
 
-### Second step in R:
 ## Outputs
 - Outputs several figures, tables and statistics 
 
