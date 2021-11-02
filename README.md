@@ -13,42 +13,12 @@ Homoplasies are mutations that emerged repeatedly and independently. They are go
 
 The CEGA index is based on the ratio of the number of descendents of sister clades with and without a specific mutation over all independent emergences of a homoplasic allele in a phylogeny. Details of its specific computation and reasoning are available in the Material and Methods section of the paper.
 
-The script 'Main_homoplasy.sh" is to be run in a unix command line step by step to ensure proper functioning.
-You are likely to have to make some modifications to it in order to modify paths etc.
-
-
 ** This script is very likely to crash as it was not developped for general use but for the study of one particular dataset **
 
 ## Inputs
-- A fasta reference genome (not provided, Wuhan-Wu-1 download here :https://www.ncbi.nlm.nih.gov/search/api/download-sequence/?db=nuccore&id=NC_045512.2)
-- A list of high-quality homoplasy positions (provided)
 - Homoplasyfinder Consistency Index Report (provided, output file of Homoplasyfinder)
 - Annotated tree file (not provided due to copyright issues, output file of Homoplasyfinder)
-- Alignement file (not provided due to copyright issues, fasta file of aligned sequences from Gisaid)
-
-## Outputs
-- Outputs several figures, tables and statistics 
-
-## Dependencies
-Perl core  
-ape R package  
-phangorn R package  
-reshape2 R package  
-ggplot2 R package  
-doParallel R package (optional, needed for parallelization)  
-foreach R package (optional, needed for parallelization)  
-
-
-
-## This is a two step pipeline :
-
-### First step in bash / perl:
-*Main_homoplasy.sh*
-
-From a filtered homoplasy list, this script :
-* Converts a raw homoplasyfinder annotated tree to a filtered homoplasyfinder annotated tree
-* Produces a matrix of alleles for each isolates at variable positions from an alignement fasta file
-
+- A matrix of alleles for each isolates at homoplastic positions
 The matrix has the following form :
 
 		Isolate_1	Isolate_2	Isolate_3	Isolate_4
@@ -57,8 +27,17 @@ The matrix has the following form :
 	23043	"ref"	"ref"	"not_ref"	"ref"
 
 
+## Outputs
+- Outputs several figures, tables and statistics 
 
-### Second step in R:
+## Dependencies
+ape R package  
+phangorn R package  
+reshape2 R package  
+ggplot2 R package  
+doParallel R package (optional, needed for parallelization)  
+foreach R package (optional, needed for parallelization)  
+
 *CEGA.R*
 
 In the filtered phylogeny (tree file), for each filtered node of the phylogeny annotated by HomoplasyFinder as corresponding to an ancestor that acquired a homoplasy, this script counts the number of offsprings having "ref", "not_ref" or "undef" alleles based on the input matrix.
