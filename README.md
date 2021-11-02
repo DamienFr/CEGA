@@ -28,7 +28,16 @@ The matrix has the following form :
 	23043	"ref"	"ref"	"not_ref"	"ref"
 
 
+The matrix has the following form :
 
+		Isolate_1	Isolate_2	Isolate_3	Isolate_4
+	1912	"ref"	"ref"	"not_ref"	"ref"
+	11083	"ref"	"not_ref"	"ref"	"undef"
+	23043	"ref"	"ref"	"not_ref"	"ref"
+
+
+
+### Second step in R:
 ## Outputs
 - Outputs several figures, tables and statistics 
 
