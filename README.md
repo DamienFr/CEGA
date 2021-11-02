@@ -21,10 +21,12 @@ The CEGA index is based on the ratio of the number of descendents of sister clad
 - A matrix of alleles for each isolates at homoplastic positions
 The matrix has the following form :
 
+
 		Isolate_1	Isolate_2	Isolate_3	Isolate_4
 	1912	"ref"	"ref"	"not_ref"	"ref"
 	11083	"ref"	"not_ref"	"ref"	"undef"
 	23043	"ref"	"ref"	"not_ref"	"ref"
+
 
 
 ## Outputs
@@ -38,7 +40,7 @@ ggplot2 R package
 doParallel R package (optional, needed for parallelization)  
 foreach R package (optional, needed for parallelization)  
 
-*CEGA.R*
+## CEGA.R
 
 In the filtered phylogeny (tree file), for each filtered node of the phylogeny annotated by HomoplasyFinder as corresponding to an ancestor that acquired a homoplasy, this script counts the number of offsprings having "ref", "not_ref" or "undef" alleles based on the input matrix.
 To be considered, an internal node must meet the following criterion :
